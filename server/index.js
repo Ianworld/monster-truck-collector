@@ -73,6 +73,7 @@ io.on('connection', (socket) => {
   teamAssignToggle++;
 
   players[socket.id] = {
+    name: '', // assigned later
     x: team === 'red' ? -80 : 80,
     y: 0,
     z: (Math.random() - 0.5) * 20,
@@ -159,6 +160,14 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('set_name', (name) => {
+    if (players[socket.id]) {
+      // sanitize name just slightly
+      players[socket.id].name = name.trim().substring(0, 20);
+      io.emit('player_update', players);
+    }
+  });
+
   socket.on('switch_team', (targetId) => {
     if (players[targetId]) {
       const p = players[targetId];
@@ -181,7 +190,9 @@ io.on('connection', (socket) => {
 
   socket.on('spawn_ai', (team) => {
     const id = 'bot_' + team + '_' + Math.random().toString(36).substr(2, 5);
+    const botNames = ["Bot Digger", "Bot Slinger", "Bot Crusher", "Bot Shaker", "Bot Loco", "Bot Mutt", "Bot Zombie", "Bot Earth", "Bot Swamp", "Bot Avenger", "Auto Hunter", "Cyber Dragon", "Mecha Cruiser", "Iron AI"];
     players[id] = {
+      name: botNames[Math.floor(Math.random() * botNames.length)],
       x: team === 'red' ? -80 : 80,
       y: 0,
       z: (Math.random() - 0.5) * 20,
@@ -382,6 +393,7 @@ function findPath(sx, sz, ex, ez) {
 
 // Init one bot on the blue team
 players['bot_blue_1'] = {
+  name: "Bot Shaker",
   team: 'blue',
   x: 80, y: 0, z: 20,
   rotation: Math.PI/2,

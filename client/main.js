@@ -340,7 +340,7 @@ function renderPlayerList() {
     const row = document.createElement('div');
     row.className = 'player-row';
 
-    const displayName = (p.isBot ? '[AI] ' : '') + id.substr(0, 5) + (id === myId ? ' (You)' : '');
+    const displayName = (p.isBot ? '[AI] ' : '') + (p.name || id.substr(0, 5)) + (id === myId ? ' (You)' : '');
     const nameSpan = document.createElement('span');
     nameSpan.innerText = displayName;
     nameSpan.className = p.team === 'red' ? 'red-text' : 'blue-text';
@@ -587,6 +587,7 @@ function setupNetworking() {
 
 // INPUT HANDLING
 window.addEventListener('keydown', (e) => {
+  if (!gameJoined) return;
   const k = e.key.toLowerCase();
   if (keys.hasOwnProperty(k)) keys[k] = true;
   if (k === ' ') keys.space = true;
@@ -597,6 +598,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('keyup', (e) => {
+  if (!gameJoined) return;
   const k = e.key.toLowerCase();
   if (keys.hasOwnProperty(k)) keys[k] = false;
   if (k === ' ') keys.space = false;
@@ -605,6 +607,33 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowLeft') keys.a = false;
   if (e.key === 'ArrowRight') keys.d = false;
 });
+
+// Welcome Screen Logic
+let gameJoined = false;
+const welcomeScreen = document.getElementById('welcome-screen');
+const playBtn = document.getElementById('play-btn');
+const nameInput = document.getElementById('player-name-input');
+
+const DRIVER_NAMES = ["Grave Digger", "Mud Slinger", "Nitro Crusher", "Bone Shaker", "Max-D", "El Toro Loco", "Monster Mutt", "Zombie", "Megadon", "Earth Shaker", "Swamp Thing", "Crushstation", "Avenger", "Bounty Hunter", "Iron Outlaw", "Dragon", "Son-uva Digger", "Lucas Oil Crusader", "Stone Crusher", "Overkill Evolution"];
+
+if (nameInput) {
+    nameInput.value = DRIVER_NAMES[Math.floor(Math.random() * DRIVER_NAMES.length)];
+    nameInput.addEventListener('focus', () => {
+        nameInput.value = '';
+    }, { once: true });
+}
+
+if (playBtn) {
+    playBtn.addEventListener('click', () => {
+        if (welcomeScreen) welcomeScreen.style.display = 'none';
+        const finalName = nameInput.value.trim() || "Driver " + Math.floor(Math.random() * 1000);
+        socket.emit('set_name', finalName);
+        gameJoined = true;
+        
+        // Start engine audio here too to ensure user interaction unlocks audio context
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    });
+}
 
 // Help Modal
 const helpBtn = document.getElementById('help-btn');
@@ -638,18 +667,21 @@ for (const [id, keyArr] of Object.entries(touchMap)) {
   if (btn) {
     btn.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      if (!gameJoined) return;
       keyArr.forEach(k => keys[k] = true);
       btn.classList.add('active');
     }, {passive: false});
     
     btn.addEventListener('touchend', (e) => {
       e.preventDefault();
+      if (!gameJoined) return;
       keyArr.forEach(k => keys[k] = false);
       btn.classList.remove('active');
     }, {passive: false});
     
     btn.addEventListener('touchcancel', (e) => {
       e.preventDefault();
+      if (!gameJoined) return;
       keyArr.forEach(k => keys[k] = false);
       btn.classList.remove('active');
     }, {passive: false});
