@@ -273,9 +273,6 @@ function triggerLightning(playerId, lId) {
     if (idx !== -1 && players[playerId]) {
         const L = lightnings.splice(idx, 1)[0];
         
-        players[playerId].gemCount = 5;
-        io.emit('gem_count_update', { playerId: playerId, gemCount: 5 });
-
         const explosionRadius = 40;
         for (let targetId in players) {
             if (targetId === playerId) continue;

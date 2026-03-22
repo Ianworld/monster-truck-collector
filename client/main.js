@@ -287,6 +287,18 @@ function createTruckMesh(colorName, gemCount = 0) {
     group.add(w);
   });
 
+  if (gemCount >= 5) {
+    const light = new THREE.PointLight(0xffd700, 2, 20);
+    light.position.set(0, 4, 0);
+    group.add(light);
+    
+    const auraGeo = new THREE.BoxGeometry(6, 4, 10);
+    const auraMat = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending });
+    const aura = new THREE.Mesh(auraGeo, auraMat);
+    aura.position.y = 2;
+    group.add(aura);
+  }
+
   return group;
 }
 
@@ -542,7 +554,10 @@ function setupNetworking() {
 
   socket.on('player_update', (newPlayers) => {
     for (let id in newPlayers) {
-      if (players[id]) players[id].isBot = newPlayers[id].isBot;
+      if (players[id]) {
+        players[id].isBot = newPlayers[id].isBot;
+        players[id].name = newPlayers[id].name;
+      }
     }
     renderPlayerList();
   });
