@@ -287,18 +287,6 @@ function createTruckMesh(colorName, gemCount = 0) {
     group.add(w);
   });
 
-  if (gemCount >= 5) {
-    const light = new THREE.PointLight(0xffd700, 2, 20);
-    light.position.set(0, 4, 0);
-    group.add(light);
-    
-    const auraGeo = new THREE.BoxGeometry(6, 4, 10);
-    const auraMat = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending });
-    const aura = new THREE.Mesh(auraGeo, auraMat);
-    aura.position.y = 2;
-    group.add(aura);
-  }
-
   return group;
 }
 
@@ -886,6 +874,24 @@ function animate() {
   }
 
   updateParticles(dt);
+
+  // Sparkle particles for max gems
+  for (let id in players) {
+    const p = players[id];
+    if (p.gemCount >= 5 && playerMeshes[id]) {
+        if (Math.random() > 0.8) {
+            const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xffdd00, transparent: true, opacity: 1 });
+            const part = new THREE.Mesh(geo, mat);
+            part.position.set(p.x + (Math.random()-0.5)*4, (p.y||0) + 4 + Math.random()*2, p.z + (Math.random()-0.5)*4);
+            part.userData = {
+                vx: (Math.random()-0.5)*5, vy: 5 + Math.random()*5, vz: (Math.random()-0.5)*5, life: 1.0
+            };
+            scene.add(part);
+            particles.push(part);
+        }
+    }
+  }
 
   if (myId && players[myId]) {
     const me = players[myId];
