@@ -30,7 +30,7 @@ function playAudio(type) {
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   const now = audioCtx.currentTime;
-  
+
   if (type === 'jump') {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(300, now);
@@ -79,7 +79,7 @@ function playAudio(type) {
 
 // SETUP THREE.JS
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87CEEB); 
+scene.background = new THREE.Color(0x87CEEB);
 
 const aspect = window.innerWidth / window.innerHeight;
 const viewSize = 100;
@@ -182,9 +182,9 @@ function buildObstacles(obsts) {
       if (obs.type === 'jump') {
         mesh.position.y = 1;
         if (obs.rotX !== undefined) mesh.rotation.x = obs.rotX;
-        else mesh.rotation.x = obs.x < 0 ? Math.PI/8 : -Math.PI/8; 
+        else mesh.rotation.x = obs.x < 0 ? Math.PI / 8 : -Math.PI / 8;
         if (obs.rotZ !== undefined) mesh.rotation.z = obs.rotZ;
-        else if (obs.x < 0) mesh.rotation.z = -Math.PI/8;
+        else if (obs.x < 0) mesh.rotation.z = -Math.PI / 8;
       }
       mesh.receiveShadow = true;
       mesh.castShadow = true;
@@ -227,25 +227,25 @@ function spawnLightningMesh(l) {
 }
 
 function createExplosionParticles(x, y, z) {
-    for (let i = 0; i < 30; i++) {
-        const p = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }));
-        p.position.set(x, y + 2, z);
-        const ang = Math.random() * Math.PI * 2;
-        p.userData = {
-            vx: Math.sin(ang) * (20 + Math.random()*30),
-            vy: 10 + Math.random()*30,
-            vz: Math.cos(ang) * (20 + Math.random()*30),
-            life: 1.0
-        };
-        scene.add(p);
-        particles.push(p);
-    }
+  for (let i = 0; i < 30; i++) {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true }));
+    p.position.set(x, y + 2, z);
+    const ang = Math.random() * Math.PI * 2;
+    p.userData = {
+      vx: Math.sin(ang) * (20 + Math.random() * 30),
+      vy: 10 + Math.random() * 30,
+      vz: Math.cos(ang) * (20 + Math.random() * 30),
+      life: 1.0
+    };
+    scene.add(p);
+    particles.push(p);
+  }
 }
 
 // CREATE TRUCK MESH
 function createTruckMesh(colorName, gemCount = 0) {
   const group = new THREE.Group();
-  
+
   const bodyColor = colorName === 'red' ? 0xff3333 : 0x33aaff;
   const bodyGeo = new THREE.BoxGeometry(4, 2, 8);
   const bodyMat = new THREE.MeshLambertMaterial({ color: bodyColor });
@@ -253,7 +253,7 @@ function createTruckMesh(colorName, gemCount = 0) {
   body.position.y = 2;
   body.castShadow = true;
   group.add(body);
-  
+
   const cabGeo = new THREE.BoxGeometry(3, 2, 3);
   const cabMat = new THREE.MeshLambertMaterial({ color: 0xdddddd });
   const cab = new THREE.Mesh(cabGeo, cabMat);
@@ -264,19 +264,19 @@ function createTruckMesh(colorName, gemCount = 0) {
   // Gem indicators in the bed of the truck (-1 to -3 range)
   const gemGeo = new THREE.OctahedronGeometry(0.8);
   const gemMat = new THREE.MeshLambertMaterial({ color: 0xffd700 });
-  for(let i=0; i<gemCount; i++) {
-     const gemMesh = new THREE.Mesh(gemGeo, gemMat);
-     // Stack them or layout in grid
-     const zPos = -1.5 - (i % 2) * 1.5;
-     const xPos = (i % 2 === 0 ? 0.8 : -0.8);
-     const yPos = 3.5 + Math.floor(i / 2) * 1.5;
-     gemMesh.position.set(xPos, yPos, zPos);
-     group.add(gemMesh);
+  for (let i = 0; i < gemCount; i++) {
+    const gemMesh = new THREE.Mesh(gemGeo, gemMat);
+    // Stack them or layout in grid
+    const zPos = -1.5 - (i % 2) * 1.5;
+    const xPos = (i % 2 === 0 ? 0.8 : -0.8);
+    const yPos = 3.5 + Math.floor(i / 2) * 1.5;
+    gemMesh.position.set(xPos, yPos, zPos);
+    group.add(gemMesh);
   }
 
   const wheelGeo = new THREE.CylinderGeometry(1.5, 1.5, 1, 16);
   const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-  
+
   const wPositions = [[-2.5, 1.5, -3], [2.5, 1.5, -3], [-2.5, 1.5, 3], [2.5, 1.5, 3]];
 
   wPositions.forEach(pos => {
@@ -291,32 +291,32 @@ function createTruckMesh(colorName, gemCount = 0) {
 }
 
 function updateScoreGems(team, score) {
-    const arr = team === 'red' ? redScoreGems : blueScoreGems;
-    const baseX = team === 'red' ? -105 : 105;
-    
-    // Add missing gems
-    while(arr.length < score) {
-        const geo = new THREE.OctahedronGeometry(1.5);
-        const matGold = new THREE.MeshLambertMaterial({ color: 0xffd700, emissive: 0xaa8800 });
-        const mesh = new THREE.Mesh(geo, matGold);
-        mesh.castShadow = true;
-        scene.add(mesh);
-        arr.push(mesh);
-    }
-    // Remove extra gems if score goes down (e.g. restart)
-    while(arr.length > score) {
-        const mesh = arr.pop();
-        scene.remove(mesh);
-    }
-    // Position them
-    for(let i=0; i<arr.length; i++) {
-        const pile = Math.floor(i / 10);
-        const idx = i % 10;
-        const x = baseX;
-        const z = -18 + pile * 4;
-        const y = 1.5 + idx * 2.5; // Stacking vertically with spacing 2.5
-        arr[i].position.set(x, y, z);
-    }
+  const arr = team === 'red' ? redScoreGems : blueScoreGems;
+  const baseX = team === 'red' ? -105 : 105;
+
+  // Add missing gems
+  while (arr.length < score) {
+    const geo = new THREE.OctahedronGeometry(1.5);
+    const matGold = new THREE.MeshLambertMaterial({ color: 0xffd700, emissive: 0xaa8800 });
+    const mesh = new THREE.Mesh(geo, matGold);
+    mesh.castShadow = true;
+    scene.add(mesh);
+    arr.push(mesh);
+  }
+  // Remove extra gems if score goes down (e.g. restart)
+  while (arr.length > score) {
+    const mesh = arr.pop();
+    scene.remove(mesh);
+  }
+  // Position them
+  for (let i = 0; i < arr.length; i++) {
+    const pile = Math.floor(i / 10);
+    const idx = i % 10;
+    const x = baseX;
+    const z = -18 + pile * 4;
+    const y = 1.5 + idx * 2.5; // Stacking vertically with spacing 2.5
+    arr[i].position.set(x, y, z);
+  }
 }
 
 function updateScores(newScores) {
@@ -327,40 +327,45 @@ function updateScores(newScores) {
   updateScoreGems('blue', scores.blue);
 }
 
-window.toggleAI = function(id) {
-    socket.emit('toggle_ai', id);
+window.toggleAI = function (id) {
+  socket.emit('toggle_ai', id);
 };
 
 function renderPlayerList() {
-   const container = document.getElementById('player-list');
-   if(!container) return;
-   container.innerHTML = '';
-   for (let id in players) {
-       const p = players[id];
-       const row = document.createElement('div');
-       row.className = 'player-row';
-       
-       const displayName = (p.isBot ? '[AI] ' : '') + id.substr(0, 5) + (id === myId ? ' (You)' : '');
-       const nameSpan = document.createElement('span');
-       nameSpan.innerText = displayName;
-       nameSpan.className = p.team === 'red' ? 'red-text' : 'blue-text';
-       if (id === myId) nameSpan.classList.add('me-text');
-       nameSpan.style.cursor = 'pointer';
-       nameSpan.onclick = () => socket.emit('switch_team', id);
-       
-       const btn = document.createElement('button');
-       btn.innerText = p.isBot ? 'Manual' : 'Autopilot';
-       btn.onclick = () => window.toggleAI(id);
-       
-       row.appendChild(nameSpan);
-       row.appendChild(btn);
-       container.appendChild(row);
-   }
+  const container = document.getElementById('player-list');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let id in players) {
+    const p = players[id];
+    const row = document.createElement('div');
+    row.className = 'player-row';
+
+    const displayName = (p.isBot ? '[AI] ' : '') + id.substr(0, 5) + (id === myId ? ' (You)' : '');
+    const nameSpan = document.createElement('span');
+    nameSpan.innerText = displayName;
+    nameSpan.className = p.team === 'red' ? 'red-text' : 'blue-text';
+    if (id === myId) nameSpan.classList.add('me-text');
+    nameSpan.style.cursor = 'pointer';
+    nameSpan.onclick = () => socket.emit('switch_team', id);
+
+    const btn = document.createElement('button');
+    btn.innerText = p.isBot ? 'Manual' : 'Autopilot';
+    btn.onclick = () => window.toggleAI(id);
+
+    row.appendChild(nameSpan);
+    row.appendChild(btn);
+    container.appendChild(row);
+  }
 }
 
 // SOCKET & MULTIPLAYER SETUP
 function setupNetworking() {
-  socket = io('http://localhost:3000'); // Connects to game server
+  // Update with your actual server URL once deployed (e.g., Render, Railway, Fly.io)
+  const SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://monster-truck-collector.onrender.com';
+
+  socket = io(SERVER_URL); // Connects to game server
 
 
   socket.on('init', (data) => {
@@ -370,7 +375,7 @@ function setupNetworking() {
     gems = data.gems;
     lightnings = data.lightnings || [];
     obstacles = data.obstacles || [];
-    
+
     if (data.scores) updateScores(data.scores);
 
     buildObstacles(obstacles);
@@ -404,7 +409,7 @@ function setupNetworking() {
       players[data.id].y = data.y;
       players[data.id].z = data.z;
       players[data.id].rotation = data.rotation;
-      
+
       if (playerMeshes[data.id]) {
         playerMeshes[data.id].position.set(data.x, data.y, data.z);
         playerMeshes[data.id].rotation.y = data.rotation;
@@ -465,9 +470,9 @@ function setupNetworking() {
 
   socket.on('thrown', (data) => {
     yVelocity = data.vy;
-    speed = Math.sqrt(data.vx**2 + data.vz**2) * 2; // massive horizontal speed
+    speed = Math.sqrt(data.vx ** 2 + data.vz ** 2) * 2; // massive horizontal speed
     if (players[myId]) players[myId].rotation = Math.atan2(data.vx, data.vz);
-    playAudio('jump'); 
+    playAudio('jump');
   });
 
   socket.on('player_leave', (id) => {
@@ -483,7 +488,7 @@ function setupNetworking() {
     const id = data.id;
     const p = data.player;
     players[id] = p;
-    
+
     if (id === myId) {
       myTeam = p.team;
       myGemCount = p.gemCount;
@@ -498,7 +503,7 @@ function setupNetworking() {
     playerMeshes[id].position.set(p.x, p.y, p.z);
     playerMeshes[id].rotation.y = p.rotation;
     scene.add(playerMeshes[id]);
-    
+
     renderPlayerList();
     playAudio('start');
   });
@@ -509,22 +514,22 @@ function setupNetworking() {
     gems = data.gems;
     lightnings = data.lightnings || [];
     updateScores(data.scores);
-    
-    for(let id in gemMeshes) { scene.remove(gemMeshes[id]); delete gemMeshes[id]; }
+
+    for (let id in gemMeshes) { scene.remove(gemMeshes[id]); delete gemMeshes[id]; }
     gems.forEach(g => spawnGemMesh(g));
 
-    for(let id in lightningMeshes) { scene.remove(lightningMeshes[id]); delete lightningMeshes[id]; }
+    for (let id in lightningMeshes) { scene.remove(lightningMeshes[id]); delete lightningMeshes[id]; }
     lightnings.forEach(l => spawnLightningMesh(l));
-    
-    for(let id in players) {
-       const p = players[id];
-       if (playerMeshes[id]) scene.remove(playerMeshes[id]);
-       playerMeshes[id] = createTruckMesh(p.team, p.gemCount);
-       playerMeshes[id].position.set(p.x, p.y, p.z);
-       playerMeshes[id].rotation.y = p.rotation;
-       scene.add(playerMeshes[id]);
+
+    for (let id in players) {
+      const p = players[id];
+      if (playerMeshes[id]) scene.remove(playerMeshes[id]);
+      playerMeshes[id] = createTruckMesh(p.team, p.gemCount);
+      playerMeshes[id].position.set(p.x, p.y, p.z);
+      playerMeshes[id].rotation.y = p.rotation;
+      scene.add(playerMeshes[id]);
     }
-    
+
     myGemCount = 0;
     myBoosts = maxBoosts;
     document.getElementById('boosts').innerText = `BOOSTS: ${myBoosts}/${maxBoosts}`;
@@ -536,43 +541,43 @@ function setupNetworking() {
   });
 
   socket.on('player_update', (newPlayers) => {
-      for (let id in newPlayers) {
-          if (players[id]) players[id].isBot = newPlayers[id].isBot;
-      }
-      renderPlayerList();
+    for (let id in newPlayers) {
+      if (players[id]) players[id].isBot = newPlayers[id].isBot;
+    }
+    renderPlayerList();
   });
 
   socket.on('game_over', (data) => {
-     const ws = document.getElementById('win-screen');
-     if (ws) ws.style.display = 'block';
-     document.getElementById('win-text').innerText = `${data.winner} TEAM WINS!`;
-     document.getElementById('win-text').style.color = data.winner === 'RED' ? '#ff3333' : '#33aaff';
-     document.getElementById('countdown-number').innerText = '10';
-     const cd = document.getElementById('countdown-number');
-     cd.classList.remove('countdown-anim');
-     void cd.offsetWidth;
-     cd.classList.add('countdown-anim');
-     playAudio('start');
+    const ws = document.getElementById('win-screen');
+    if (ws) ws.style.display = 'block';
+    document.getElementById('win-text').innerText = `${data.winner} TEAM WINS!`;
+    document.getElementById('win-text').style.color = data.winner === 'RED' ? '#ff3333' : '#33aaff';
+    document.getElementById('countdown-number').innerText = '10';
+    const cd = document.getElementById('countdown-number');
+    cd.classList.remove('countdown-anim');
+    void cd.offsetWidth;
+    cd.classList.add('countdown-anim');
+    playAudio('start');
   });
 
   socket.on('countdown', (num) => {
-     const cd = document.getElementById('countdown-number');
-     cd.innerText = num.toString();
-     cd.classList.remove('countdown-anim');
-     void cd.offsetWidth;
-     cd.classList.add('countdown-anim');
-     playAudio('collect');
+    const cd = document.getElementById('countdown-number');
+    cd.innerText = num.toString();
+    cd.classList.remove('countdown-anim');
+    void cd.offsetWidth;
+    cd.classList.add('countdown-anim');
+    playAudio('collect');
   });
 
   document.getElementById('restart-btn').addEventListener('click', () => {
-     socket.emit('restart_game');
+    socket.emit('restart_game');
   });
 
   setInterval(() => {
-     if (myBoosts < maxBoosts) {
-        myBoosts++;
-        document.getElementById('boosts').innerText = `BOOSTS: ${myBoosts}/${maxBoosts}`;
-     }
+    if (myBoosts < maxBoosts) {
+      myBoosts++;
+      document.getElementById('boosts').innerText = `BOOSTS: ${myBoosts}/${maxBoosts}`;
+    }
   }, 10000);
 
   document.getElementById('spawn-red-ai').addEventListener('click', () => socket.emit('spawn_ai', 'red'));
@@ -585,20 +590,20 @@ window.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
   if (keys.hasOwnProperty(k)) keys[k] = true;
   if (k === ' ') keys.space = true;
-  if(e.key === 'ArrowUp') keys.w = true;
-  if(e.key === 'ArrowDown') keys.s = true;
-  if(e.key === 'ArrowLeft') keys.a = true;
-  if(e.key === 'ArrowRight') keys.d = true;
+  if (e.key === 'ArrowUp') keys.w = true;
+  if (e.key === 'ArrowDown') keys.s = true;
+  if (e.key === 'ArrowLeft') keys.a = true;
+  if (e.key === 'ArrowRight') keys.d = true;
 });
 
 window.addEventListener('keyup', (e) => {
   const k = e.key.toLowerCase();
   if (keys.hasOwnProperty(k)) keys[k] = false;
   if (k === ' ') keys.space = false;
-  if(e.key === 'ArrowUp') keys.w = false;
-  if(e.key === 'ArrowDown') keys.s = false;
-  if(e.key === 'ArrowLeft') keys.a = false;
-  if(e.key === 'ArrowRight') keys.d = false;
+  if (e.key === 'ArrowUp') keys.w = false;
+  if (e.key === 'ArrowDown') keys.s = false;
+  if (e.key === 'ArrowLeft') keys.a = false;
+  if (e.key === 'ArrowRight') keys.d = false;
 });
 
 // INITIALIZE
@@ -621,39 +626,39 @@ let boostActive = 0;
 const particles = [];
 
 function createBoostParticles(x, y, z, rot) {
-    if (Math.random() > 0.6) return; // control spawn rate
-    const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 1 });
-    const p = new THREE.Mesh(geo, mat);
-    const backX = x - Math.sin(rot) * 3 + (Math.random() - 0.5);
-    const backZ = z - Math.cos(rot) * 3 + (Math.random() - 0.5);
-    p.position.set(backX, y + 0.5 + Math.random(), backZ);
-    p.userData = {
-        vx: -Math.sin(rot) * (15 + Math.random()*10) + (Math.random()-0.5)*5,
-        vy: 2 + Math.random()*3,
-        vz: -Math.cos(rot) * (15 + Math.random()*10) + (Math.random()-0.5)*5,
-        life: 1.0
-    };
-    scene.add(p);
-    particles.push(p);
+  if (Math.random() > 0.6) return; // control spawn rate
+  const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 1 });
+  const p = new THREE.Mesh(geo, mat);
+  const backX = x - Math.sin(rot) * 3 + (Math.random() - 0.5);
+  const backZ = z - Math.cos(rot) * 3 + (Math.random() - 0.5);
+  p.position.set(backX, y + 0.5 + Math.random(), backZ);
+  p.userData = {
+    vx: -Math.sin(rot) * (15 + Math.random() * 10) + (Math.random() - 0.5) * 5,
+    vy: 2 + Math.random() * 3,
+    vz: -Math.cos(rot) * (15 + Math.random() * 10) + (Math.random() - 0.5) * 5,
+    life: 1.0
+  };
+  scene.add(p);
+  particles.push(p);
 }
 
 function updateParticles(dt) {
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.userData.life -= dt * 2.5;
-        if (p.userData.life <= 0) {
-            scene.remove(p);
-            particles.splice(i, 1);
-        } else {
-            p.position.x += p.userData.vx * dt;
-            p.position.y += p.userData.vy * dt;
-            p.position.z += p.userData.vz * dt;
-            p.userData.vy -= 20 * dt; // gravity
-            p.scale.setScalar(p.userData.life);
-            p.material.opacity = p.userData.life;
-        }
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.userData.life -= dt * 2.5;
+    if (p.userData.life <= 0) {
+      scene.remove(p);
+      particles.splice(i, 1);
+    } else {
+      p.position.x += p.userData.vx * dt;
+      p.position.y += p.userData.vy * dt;
+      p.position.z += p.userData.vz * dt;
+      p.userData.vy -= 20 * dt; // gravity
+      p.scale.setScalar(p.userData.life);
+      p.material.opacity = p.userData.life;
     }
+  }
 }
 
 function checkCollisions(me, dt) {
@@ -687,62 +692,62 @@ function checkCollisions(me, dt) {
   }
 
   if (hittingWall) {
-     speed = -speed * 0.5;
-     me.x -= Math.sin(me.rotation) * 2;
-     me.z -= Math.cos(me.rotation) * 2;
+    speed = -speed * 0.5;
+    me.x -= Math.sin(me.rotation) * 2;
+    me.z -= Math.cos(me.rotation) * 2;
   }
 
   // Bumping other players
   if (Math.abs(speed) > 30) {
-      for (let id in players) {
-          if (id === myId) continue;
-          const p = players[id];
-          const dx = me.x - p.x;
-          const dz = me.z - p.z;
-          if (dx*dx + dz*dz < 16 && p.y < 3) {
-             socket.emit('bump_player', id);
-             speed *= -0.5;
-             me.x -= Math.sin(me.rotation) * 2;
-             me.z -= Math.cos(me.rotation) * 2;
-             playAudio('bump');
-          }
+    for (let id in players) {
+      if (id === myId) continue;
+      const p = players[id];
+      const dx = me.x - p.x;
+      const dz = me.z - p.z;
+      if (dx * dx + dz * dz < 16 && p.y < 3) {
+        socket.emit('bump_player', id);
+        speed *= -0.5;
+        me.x -= Math.sin(me.rotation) * 2;
+        me.z -= Math.cos(me.rotation) * 2;
+        playAudio('bump');
       }
+    }
   }
 
   // Gem checks
   if (myGemCount < 5) {
     for (let i = 0; i < gems.length; i++) {
-        const g = gems[i];
-        if (g.vy !== undefined) continue; // Not pickable while falling
-        const distSq = (me.x - g.x)**2 + (me.z - g.z)**2;
-        if (distSq < 16 && me.y < 4) {
-           socket.emit('collect_gem', g.id);
-           break; // Let server validate it
-        }
+      const g = gems[i];
+      if (g.vy !== undefined) continue; // Not pickable while falling
+      const distSq = (me.x - g.x) ** 2 + (me.z - g.z) ** 2;
+      if (distSq < 16 && me.y < 4) {
+        socket.emit('collect_gem', g.id);
+        break; // Let server validate it
+      }
     }
   }
 
   // Lightning checks
   for (let i = 0; i < lightnings.length; i++) {
-     const L = lightnings[i];
-     const distSq = (me.x - L.x)**2 + (me.z - L.z)**2;
-     if (distSq < 25 && me.y < 4) {
-        socket.emit('trigger_lightning', L.id);
-        lightnings.splice(i, 1);
-        break; 
-     }
+    const L = lightnings[i];
+    const distSq = (me.x - L.x) ** 2 + (me.z - L.z) ** 2;
+    if (distSq < 25 && me.y < 4) {
+      socket.emit('trigger_lightning', L.id);
+      lightnings.splice(i, 1);
+      break;
+    }
   }
 
   // Base checks (Scoring & Recharge)
   const isRedBase = myTeam === 'red' && me.x < -60 && Math.abs(me.z) < 20;
   const isBlueBase = myTeam === 'blue' && me.x > 60 && Math.abs(me.z) < 20;
-  
+
   if ((isRedBase || isBlueBase) && me.y < 2) {
     if (myGemCount > 0) socket.emit('score');
     if (myBoosts < maxBoosts) {
-       myBoosts = maxBoosts;
-       document.getElementById('boosts').innerText = `BOOSTS: ${myBoosts}/${maxBoosts}`;
-       playAudio('collect');
+      myBoosts = maxBoosts;
+      document.getElementById('boosts').innerText = `BOOSTS: ${myBoosts}/${maxBoosts}`;
+      playAudio('collect');
     }
   }
 }
@@ -756,110 +761,110 @@ function animate() {
 
   // Spin gems & Animate dropped gems
   for (let i = 0; i < gems.length; i++) {
-      const g = gems[i];
-      if (gemMeshes[g.id]) {
-          gemMeshes[g.id].rotation.y += 2 * dt;
-          if (g.vy !== undefined) {
-              g.x += g.vx * dt;
-              g.z += g.vz * dt;
-              g.y = (g.y || 1.5) + g.vy * dt;
-              g.vy -= gravity * dt;
-              if (g.y <= 1.5) {
-                  g.y = 1.5;
-                  delete g.vy; delete g.vx; delete g.vz;
-              }
-              gemMeshes[g.id].position.set(g.x, g.y, g.z);
-          }
+    const g = gems[i];
+    if (gemMeshes[g.id]) {
+      gemMeshes[g.id].rotation.y += 2 * dt;
+      if (g.vy !== undefined) {
+        g.x += g.vx * dt;
+        g.z += g.vz * dt;
+        g.y = (g.y || 1.5) + g.vy * dt;
+        g.vy -= gravity * dt;
+        if (g.y <= 1.5) {
+          g.y = 1.5;
+          delete g.vy; delete g.vx; delete g.vz;
+        }
+        gemMeshes[g.id].position.set(g.x, g.y, g.z);
       }
+    }
   }
 
   redScoreGems.forEach(g => g.rotation.y += 2 * dt);
   blueScoreGems.forEach(g => g.rotation.y += 2 * dt);
 
   for (let i = 0; i < lightnings.length; i++) {
-     const L = lightnings[i];
-     if (lightningMeshes[L.id]) {
-        lightningMeshes[L.id].rotation.y += 3 * dt;
-     }
+    const L = lightnings[i];
+    if (lightningMeshes[L.id]) {
+      lightningMeshes[L.id].rotation.y += 3 * dt;
+    }
   }
-  
+
   updateParticles(dt);
 
   if (myId && players[myId]) {
     const me = players[myId];
-    
+
     if (keys.w) speed += acceleration * dt;
     else if (keys.s) speed -= acceleration * dt;
     else {
       if (speed > 0) speed = Math.max(0, speed - friction * dt);
       if (speed < 0) speed = Math.min(0, speed + friction * dt);
     }
-    
+
     if (keys.space && !lastSpacePress) {
-        if (myBoosts > 0) {
-            myBoosts--;
-            document.getElementById('boosts').innerText = `BOOSTS: ${myBoosts}/${maxBoosts}`;
-            speed = 100;
-            boostActive = 0.5;
-            playAudio('jump');
-        }
+      if (myBoosts > 0) {
+        myBoosts--;
+        document.getElementById('boosts').innerText = `BOOSTS: ${myBoosts}/${maxBoosts}`;
+        speed = 100;
+        boostActive = 0.5;
+        playAudio('jump');
+      }
     }
     lastSpacePress = keys.space;
 
     if (boostActive > 0) {
-        boostActive -= dt;
-        maxSpeed = 100;
-        createBoostParticles(me.x, me.y, me.z, me.rotation);
+      boostActive -= dt;
+      maxSpeed = 100;
+      createBoostParticles(me.x, me.y, me.z, me.rotation);
     } else {
-        maxSpeed = defaultMaxSpeed;
+      maxSpeed = defaultMaxSpeed;
     }
 
     if (speed > maxSpeed) {
-        speed -= friction * 2 * dt; // Slow down naturally
+      speed -= friction * 2 * dt; // Slow down naturally
     } else {
-        speed = Math.max(-maxSpeed/2, Math.min(speed, maxSpeed));
+      speed = Math.max(-maxSpeed / 2, Math.min(speed, maxSpeed));
     }
 
     if (!me.isBot) {
-        me.y += yVelocity * dt;
-        if (me.y > 0) yVelocity -= gravity * dt;
-        else {
-          me.y = 0; yVelocity = 0;
-          if (Math.abs(speed) > 1) {
-            const turnDir = speed > 0 ? 1 : -1;
-            if (keys.a) me.rotation += turnSpeed * dt * turnDir;
-            if (keys.d) me.rotation -= turnSpeed * dt * turnDir;
-          }
+      me.y += yVelocity * dt;
+      if (me.y > 0) yVelocity -= gravity * dt;
+      else {
+        me.y = 0; yVelocity = 0;
+        if (Math.abs(speed) > 1) {
+          const turnDir = speed > 0 ? 1 : -1;
+          if (keys.a) me.rotation += turnSpeed * dt * turnDir;
+          if (keys.d) me.rotation -= turnSpeed * dt * turnDir;
         }
+      }
 
-        me.x += Math.sin(me.rotation) * speed * dt;
-        me.z += Math.cos(me.rotation) * speed * dt;
-        me.x = THREE.MathUtils.clamp(me.x, -MAP_WIDTH/2, MAP_WIDTH/2);
-        me.z = THREE.MathUtils.clamp(me.z, -MAP_HEIGHT/2, MAP_HEIGHT/2);
+      me.x += Math.sin(me.rotation) * speed * dt;
+      me.z += Math.cos(me.rotation) * speed * dt;
+      me.x = THREE.MathUtils.clamp(me.x, -MAP_WIDTH / 2, MAP_WIDTH / 2);
+      me.z = THREE.MathUtils.clamp(me.z, -MAP_HEIGHT / 2, MAP_HEIGHT / 2);
 
-        checkCollisions(me, dt);
+      checkCollisions(me, dt);
 
-        if (playerMeshes[myId]) {
-          playerMeshes[myId].position.set(me.x, me.y, me.z);
-          playerMeshes[myId].rotation.y = me.rotation;
-          playerMeshes[myId].rotation.x = speed * 0.002;
-        }
+      if (playerMeshes[myId]) {
+        playerMeshes[myId].position.set(me.x, me.y, me.z);
+        playerMeshes[myId].rotation.y = me.rotation;
+        playerMeshes[myId].rotation.x = speed * 0.002;
+      }
 
-        if (Math.abs(speed) > 0.1 || keys.a || keys.d || yVelocity !== 0 || boostActive > 0) {
-            socket.emit('move', { x: me.x, y: me.y, z: me.z, rotation: me.rotation, gemCount: myGemCount });
-        }
+      if (Math.abs(speed) > 0.1 || keys.a || keys.d || yVelocity !== 0 || boostActive > 0) {
+        socket.emit('move', { x: me.x, y: me.y, z: me.z, rotation: me.rotation, gemCount: myGemCount });
+      }
     } else {
-        // Autopilot bypasses physics so client respects server player_moved override
-        // Update local mesh roll based on speed
-        if (playerMeshes[myId]) {
-          playerMeshes[myId].rotation.x = speed * 0.002; 
-        }
+      // Autopilot bypasses physics so client respects server player_moved override
+      // Update local mesh roll based on speed
+      if (playerMeshes[myId]) {
+        playerMeshes[myId].rotation.x = speed * 0.002;
+      }
     }
 
     const targetCamX = me.x - 30;
     const targetCamY = 50;
     const targetCamZ = me.z + 30;
-    
+
     camera.position.x += (targetCamX - camera.position.x) * 5 * dt;
     camera.position.y = targetCamY;
     camera.position.z += (targetCamZ - camera.position.z) * 5 * dt;
