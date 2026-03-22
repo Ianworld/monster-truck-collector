@@ -438,6 +438,20 @@ function updateBots() {
   const dt = Math.min((now - lastBotTime) / 1000, 0.1);
   lastBotTime = now;
 
+  const gravity = 80;
+  for (let g of gems) {
+      if (g.vy !== undefined) {
+          g.x += g.vx * dt;
+          g.z += g.vz * dt;
+          g.y = (g.y || 1.5) + g.vy * dt;
+          g.vy -= gravity * dt;
+          if (g.y <= 1.5) {
+             g.y = 1.5;
+             delete g.vy; delete g.vx; delete g.vz;
+          }
+      }
+  }
+
   for (let id in players) {
     const bot = players[id];
     if (!bot.isBot) continue;
