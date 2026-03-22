@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
       players[socket.id].y = data.y;
       players[socket.id].z = data.z;
       players[socket.id].rotation = data.rotation;
-      players[socket.id].gemCount = data.gemCount;
+      // Do NOT trust the client's gemCount here, server is the source of truth
       
       // broadcast to everyone else
       socket.broadcast.emit('player_moved', { id: socket.id, ...players[socket.id] });
