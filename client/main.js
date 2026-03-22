@@ -358,6 +358,20 @@ function renderPlayerList() {
   }
 }
 
+function clearDynamicMeshes() {
+    for (let id in gemMeshes) { scene.remove(gemMeshes[id]); }
+    gemMeshes = {};
+    for (let id in lightningMeshes) { scene.remove(lightningMeshes[id]); }
+    lightningMeshes = {};
+    for (let id in playerMeshes) { scene.remove(playerMeshes[id]); }
+    playerMeshes = {};
+}
+
+function clearObstacleMeshes() {
+    for (let m of obstacleMeshes) { scene.remove(m); }
+    obstacleMeshes = [];
+}
+
 // SOCKET & MULTIPLAYER SETUP
 function setupNetworking() {
   // Update with your actual server URL once deployed (e.g., Render, Railway, Fly.io)
@@ -377,6 +391,9 @@ function setupNetworking() {
     obstacles = data.obstacles || [];
 
     if (data.scores) updateScores(data.scores);
+
+    clearDynamicMeshes();
+    clearObstacleMeshes();
 
     buildObstacles(obstacles);
     gems.forEach(g => spawnGemMesh(g));
@@ -515,15 +532,13 @@ function setupNetworking() {
     lightnings = data.lightnings || [];
     updateScores(data.scores);
 
-    for (let id in gemMeshes) { scene.remove(gemMeshes[id]); delete gemMeshes[id]; }
-    gems.forEach(g => spawnGemMesh(g));
+    clearDynamicMeshes();
 
-    for (let id in lightningMeshes) { scene.remove(lightningMeshes[id]); delete lightningMeshes[id]; }
+    gems.forEach(g => spawnGemMesh(g));
     lightnings.forEach(l => spawnLightningMesh(l));
 
     for (let id in players) {
       const p = players[id];
-      if (playerMeshes[id]) scene.remove(playerMeshes[id]);
       playerMeshes[id] = createTruckMesh(p.team, p.gemCount);
       playerMeshes[id].position.set(p.x, p.y, p.z);
       playerMeshes[id].rotation.y = p.rotation;
