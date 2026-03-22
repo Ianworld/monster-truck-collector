@@ -42,6 +42,10 @@
         <button id="close-settings-btn" class="retro-btn">X</button>
         <button id="restart-btn" class="retro-btn">Restart Game</button>
         <button id="restart-server-btn" class="retro-btn" style="background:#666;">Restart Server</button>
+        <div id="volume-control" style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+          <button id="mute-btn" class="retro-btn" style="padding: 5px 10px; min-width: 50px;">🔊</button>
+          <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" style="flex-grow:1; cursor:pointer;" />
+        </div>
       </div>
       <div id="help-btn">?</div>
       <div id="instructions-modal" style="display:none;">

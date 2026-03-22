@@ -3,6 +3,10 @@ import { io } from 'socket.io-client';
 
 // AUDIO SYNTHESIS
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const masterGain = audioCtx.createGain();
+masterGain.gain.value = 0.5; // default volume
+masterGain.connect(audioCtx.destination);
+
 let engineOsc;
 let engineGain;
 let audioInit = false;
@@ -16,7 +20,7 @@ window.addEventListener('keydown', () => {
     engineGain = audioCtx.createGain();
     engineGain.gain.value = 0.05; // low hum
     engineOsc.connect(engineGain);
-    engineGain.connect(audioCtx.destination);
+    engineGain.connect(masterGain);
     engineOsc.start();
     audioInit = true;
     playAudio('start');
@@ -28,7 +32,7 @@ function playAudio(type) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  gain.connect(masterGain);
   const now = audioCtx.currentTime;
 
   if (type === 'jump') {
@@ -686,6 +690,43 @@ if (closeSettingsBtn) {
   closeSettingsBtn.addEventListener('click', () => {
     if(settingsModal) settingsModal.style.display = 'none';
     if(settingsBtn) settingsBtn.style.display = 'block';
+  });
+}
+
+const volumeSlider = document.getElementById('volume-slider');
+const muteBtn = document.getElementById('mute-btn');
+let isMuted = false;
+let previousVolume = 0.5;
+
+if (volumeSlider) {
+  volumeSlider.addEventListener('input', (e) => {
+    const vol = parseFloat(e.target.value);
+    if (!isMuted) {
+      masterGain.gain.value = vol;
+    }
+    previousVolume = vol;
+    if (vol === 0) {
+      isMuted = true;
+      if (muteBtn) muteBtn.innerText = '🔇';
+    } else {
+      isMuted = false;
+      if (muteBtn) muteBtn.innerText = '🔊';
+    }
+  });
+}
+
+if (muteBtn) {
+  muteBtn.addEventListener('click', () => {
+    isMuted = !isMuted;
+    if (isMuted) {
+      masterGain.gain.value = 0;
+      muteBtn.innerText = '🔇';
+      volumeSlider.value = 0;
+    } else {
+      masterGain.gain.value = previousVolume > 0 ? previousVolume : 0.5;
+      muteBtn.innerText = '🔊';
+      volumeSlider.value = masterGain.gain.value;
+    }
   });
 }
 
