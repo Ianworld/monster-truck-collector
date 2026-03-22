@@ -656,6 +656,24 @@ if (closeHelpBtn) {
   });
 }
 
+// Settings Modal
+const settingsBtn = document.getElementById('settings-btn');
+const closeSettingsBtn = document.getElementById('close-settings-btn');
+const settingsModal = document.getElementById('settings-modal');
+
+if (settingsBtn) {
+  settingsBtn.addEventListener('click', () => {
+    if(settingsModal) settingsModal.style.display = 'flex';
+    settingsBtn.style.display = 'none';
+  });
+}
+if (closeSettingsBtn) {
+  closeSettingsBtn.addEventListener('click', () => {
+    if(settingsModal) settingsModal.style.display = 'none';
+    if(settingsBtn) settingsBtn.style.display = 'block';
+  });
+}
+
 // Touch Controls
 const touchMap = {
   'btn-fwd': ['w'],

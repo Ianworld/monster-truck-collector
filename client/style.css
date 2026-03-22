@@ -88,6 +88,51 @@ body {
   border-radius: 50%;
 }
 
+#settings-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0,0,0,0.6);
+  border: 3px solid white;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 38px;
+  cursor: pointer;
+  border-radius: 50%;
+  pointer-events: auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+#settings-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+#settings-modal {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  background: rgba(0,0,0,0.8);
+  border: 3px solid white;
+  padding: 25px 20px 20px 20px;
+  width: 200px;
+  pointer-events: auto;
+  box-shadow: 4px 4px 0px #000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+#close-settings-btn {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 50%;
+}
+
 #touch-controls {
   position: absolute;
   bottom: 20px;
@@ -145,7 +190,7 @@ body {
 }
 
 @media (max-width: 768px) {
-  #restart-server-btn, #restart-btn, .ai-spawners, #player-list-container, #help-btn, #instructions-modal {
+  #settings-btn, #settings-modal, .ai-spawners, #player-list-container, #help-btn, #instructions-modal {
     display: none !important;
   }
   #score-board {
@@ -187,21 +232,10 @@ canvas {
   pointer-events: auto;
 }
 
-#restart-btn {
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
 .retro-btn:hover {
   filter: brightness(1.2);
   box-shadow: 0px 0px 0px #000;
   transform: translate(2px, 2px);
-}
-
-#restart-btn:hover {
-  transform: translateX(-50%) translate(2px, 2px);
 }
 
 #player-list-container {
