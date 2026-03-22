@@ -32,7 +32,15 @@ const obstacles = [
   { id: 'b2', type: 'boost', x: 0, z: 10, w: 5, d: 10, rot: 0 }
 ];
 const scores = { red: 0, blue: 0 };
-let gameState = 'PLAYING';
+let gameState = 'PAUSED';
+
+function getNonBotCount() {
+    let count = 0;
+    for (let id in players) {
+        if (!players[id].isBot) count++;
+    }
+    return count;
+}
 
 const MAP_WIDTH = 200;
 const MAP_HEIGHT = 100;
@@ -72,6 +80,8 @@ io.on('connection', (socket) => {
   const team = teamAssignToggle % 2 === 0 ? 'red' : 'blue';
   teamAssignToggle++;
 
+  const nonBotsBefore = getNonBotCount();
+
   players[socket.id] = {
     name: '', // assigned later
     x: team === 'red' ? -80 : 80,
@@ -83,6 +93,11 @@ io.on('connection', (socket) => {
     gemCount: 0,
     isBot: false
   };
+
+  if (nonBotsBefore === 0) {
+      gameState = 'PLAYING';
+      doRestartGame();
+  }
 
   // Send current state to new player
   socket.emit('init', { id: socket.id, players, gems, lightnings, obstacles, scores });
@@ -150,12 +165,25 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`Player disconnected: ${socket.id}`);
     delete players[socket.id];
+    if (getNonBotCount() === 0) {
+        gameState = 'PAUSED';
+    }
     io.emit('player_leave', socket.id);
   });
 
   socket.on('toggle_ai', (targetId) => {
     if (players[targetId]) {
-      players[targetId].isBot = !players[targetId].isBot;
+      const wasBot = players[targetId].isBot;
+      players[targetId].isBot = !wasBot;
+      
+      const nonBotsAfter = getNonBotCount();
+      if (wasBot && nonBotsAfter === 1) {
+          gameState = 'PLAYING';
+          doRestartGame();
+      } else if (!wasBot && nonBotsAfter === 0) {
+          gameState = 'PAUSED';
+      }
+
       io.emit('player_update', players);
     }
   });
@@ -256,7 +284,11 @@ function checkWin() {
             } else {
                clearInterval(interval);
                doRestartGame();
-               gameState = 'PLAYING';
+               if (getNonBotCount() > 0) {
+                   gameState = 'PLAYING';
+               } else {
+                   gameState = 'PAUSED';
+               }
             }
          }, 1000);
     }
