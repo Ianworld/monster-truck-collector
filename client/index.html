@@ -32,7 +32,23 @@
       <div id="boosts">BOOSTS: 5/5</div>
       <button id="restart-btn" class="retro-btn">Restart Game</button>
       <button id="restart-server-btn" class="retro-btn" style="position:absolute; top:20px; right:150px; background:#666;">Restart Server</button>
-      <div class="instructions">Use WASD or Arrows to drive. Space to BOOST. Collect yellow gems in the middle and bring them back to your base!</div>
+      <div id="help-btn">?</div>
+      <div id="instructions-modal" style="display:none;">
+        <button id="close-help-btn" class="retro-btn">X</button>
+        <p>Use WASD or Arrows to drive. Space to BOOST.<br/>Collect yellow gems in the middle and bring them back to your base!</p>
+      </div>
+
+      <div id="touch-controls">
+        <div id="joystick-left">
+          <button id="btn-fwd-left" class="touch-btn">↖</button>
+          <button id="btn-fwd" class="touch-btn">↑</button>
+          <button id="btn-fwd-right" class="touch-btn">↗</button>
+          <button id="btn-back" class="touch-btn" style="grid-column: 2;">↓</button>
+        </div>
+        <div id="joystick-right">
+          <button id="btn-boost" class="touch-btn boost-touch-btn">BOOST</button>
+        </div>
+      </div>
     </div>
     <div id="app"></div>
     <script type="module" src="/main.js"></script>

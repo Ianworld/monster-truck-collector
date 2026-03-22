@@ -41,13 +41,121 @@ body {
   color: #33aaff;
 }
 
-.instructions {
+#help-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0,0,0,0.6);
+  border: 3px solid white;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
   text-align: center;
+  line-height: 38px;
+  cursor: pointer;
+  border-radius: 50%;
+  pointer-events: auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+#help-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+#instructions-modal {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  background: rgba(0,0,0,0.8);
+  border: 3px solid white;
   padding: 20px;
+  width: 300px;
+  text-align: center;
+  pointer-events: auto;
   font-size: 1.2rem;
-  background: rgba(0,0,0,0.5);
-  margin-bottom: 20px;
   text-shadow: 1px 1px 0 #000;
+  box-shadow: 4px 4px 0px #000;
+}
+
+#close-help-btn {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 50%;
+}
+
+#touch-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+#joystick-left {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(2, 60px);
+  gap: 10px;
+  pointer-events: auto;
+}
+
+#joystick-right {
+  pointer-events: auto;
+}
+
+.touch-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.touch-btn:active, .touch-btn.active {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.boost-touch-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 204, 0, 0.3);
+  border-color: rgba(255, 204, 0, 0.8);
+  font-size: 16px;
+}
+.boost-touch-btn:active, .boost-touch-btn.active {
+  background: rgba(255, 204, 0, 0.8);
+}
+
+@media (min-width: 769px) {
+  #touch-controls {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  #restart-server-btn, #restart-btn, .ai-spawners, #player-list-container, #help-btn, #instructions-modal {
+    display: none !important;
+  }
+  #score-board {
+    font-size: 1.2rem;
+    padding: 10px 20px;
+  }
+  #boosts {
+    top: 40px;
+    font-size: 18px;
+  }
 }
 
 canvas {

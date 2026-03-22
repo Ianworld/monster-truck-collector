@@ -606,6 +606,56 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowRight') keys.d = false;
 });
 
+// Help Modal
+const helpBtn = document.getElementById('help-btn');
+const closeHelpBtn = document.getElementById('close-help-btn');
+const instructionsModal = document.getElementById('instructions-modal');
+
+if (helpBtn) {
+  helpBtn.addEventListener('click', () => {
+    if(instructionsModal) instructionsModal.style.display = 'block';
+    helpBtn.style.display = 'none';
+  });
+}
+if (closeHelpBtn) {
+  closeHelpBtn.addEventListener('click', () => {
+    if(instructionsModal) instructionsModal.style.display = 'none';
+    if(helpBtn) helpBtn.style.display = 'block';
+  });
+}
+
+// Touch Controls
+const touchMap = {
+  'btn-fwd': ['w'],
+  'btn-back': ['s'],
+  'btn-fwd-left': ['w', 'a'],
+  'btn-fwd-right': ['w', 'd'],
+  'btn-boost': ['space']
+};
+
+for (const [id, keyArr] of Object.entries(touchMap)) {
+  const btn = document.getElementById(id);
+  if (btn) {
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      keyArr.forEach(k => keys[k] = true);
+      btn.classList.add('active');
+    }, {passive: false});
+    
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keyArr.forEach(k => keys[k] = false);
+      btn.classList.remove('active');
+    }, {passive: false});
+    
+    btn.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      keyArr.forEach(k => keys[k] = false);
+      btn.classList.remove('active');
+    }, {passive: false});
+  }
+}
+
 // INITIALIZE
 buildEnvironment();
 setupNetworking();
