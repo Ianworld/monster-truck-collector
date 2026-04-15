@@ -11,6 +11,183 @@ let engineOsc;
 let engineGain;
 let audioInit = false;
 
+// ─── BACKGROUND MUSIC SYSTEM ───
+const musicGain = audioCtx.createGain();
+musicGain.gain.value = 0.18; // music volume (relative to masterGain)
+musicGain.connect(masterGain);
+
+let musicPlaying = false;
+
+function startBackgroundMusic() {
+  if (musicPlaying) return;
+  musicPlaying = true;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const BPM = 140;
+  const beatLen = 60 / BPM;         // seconds per beat
+  const barLen  = beatLen * 4;       // 4 beats per bar
+  const loopBars = 8;                // 8-bar loop
+  const loopLen = barLen * loopBars; // total loop length
+
+  // ── Note helpers ──
+  const noteFreq = (name) => {
+    const notes = { 'C':261.63,'C#':277.18,'D':293.66,'D#':311.13,'E':329.63,'F':349.23,'F#':369.99,'G':392.00,'G#':415.30,'A':440.00,'A#':466.16,'B':493.88 };
+    const note = name.replace(/\d/, '');
+    const oct = parseInt(name.slice(-1));
+    return notes[note] * Math.pow(2, oct - 4);
+  };
+
+  // ── Melody (fun bouncy chiptune) ──
+  const melody = [
+    // Bar 1
+    ['C5',0.5],['E5',0.5],['G5',0.5],['E5',0.5],
+    // Bar 2
+    ['A5',0.75],['G5',0.25],['E5',0.5],['D5',0.5],
+    // Bar 3
+    ['C5',0.5],['D5',0.5],['E5',0.5],['G5',0.5],
+    // Bar 4
+    ['A5',1.0],['G5',0.5],['E5',0.5],
+    // Bar 5
+    ['F5',0.5],['A5',0.5],['G5',0.5],['E5',0.5],
+    // Bar 6
+    ['D5',0.75],['E5',0.25],['F5',0.5],['D5',0.5],
+    // Bar 7
+    ['C5',0.5],['E5',0.5],['G5',0.5],['A5',0.5],
+    // Bar 8
+    ['G5',1.0],['E5',0.5],['C5',0.5],
+  ];
+
+  // ── Bass line ──
+  const bass = [
+    ['C3',2],['G2',2],    // Bar 1
+    ['A2',2],['E2',2],    // Bar 2
+    ['C3',2],['D3',2],    // Bar 3
+    ['A2',2],['G2',2],    // Bar 4
+    ['F2',2],['A2',2],    // Bar 5
+    ['D3',2],['G2',2],    // Bar 6
+    ['C3',2],['E3',2],    // Bar 7
+    ['G2',2],['C3',2],    // Bar 8
+  ];
+
+  // ── Arpeggio/chords (sparkly layer) ──
+  const arps = [
+    ['C4','E4','G4'], ['C4','E4','G4'],  // Bar 1
+    ['A3','C4','E4'], ['A3','C4','E4'],  // Bar 2
+    ['C4','E4','G4'], ['D4','F4','A4'],  // Bar 3
+    ['A3','C4','E4'], ['G3','B3','D4'],  // Bar 4
+    ['F3','A3','C4'], ['F3','A3','C4'],  // Bar 5
+    ['D4','F4','A4'], ['G3','B3','D4'],  // Bar 6
+    ['C4','E4','G4'], ['C4','E4','G4'],  // Bar 7
+    ['G3','B3','D4'], ['C4','E4','G4'],  // Bar 8
+  ];
+
+  function scheduleLoop() {
+    const startTime = audioCtx.currentTime + 0.05;
+
+    // ── Schedule Melody ──
+    let melTime = startTime;
+    for (const [note, beats] of melody) {
+      const dur = beats * beatLen;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = noteFreq(note);
+      osc.connect(g);
+      g.connect(musicGain);
+      g.gain.setValueAtTime(0.22, melTime);
+      g.gain.setValueAtTime(0.22, melTime + dur * 0.7);
+      g.gain.linearRampToValueAtTime(0.0, melTime + dur * 0.95);
+      osc.start(melTime);
+      osc.stop(melTime + dur);
+      melTime += dur;
+    }
+
+    // ── Schedule Bass ──
+    let bassTime = startTime;
+    for (const [note, beats] of bass) {
+      const dur = beats * beatLen;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = noteFreq(note);
+      osc.connect(g);
+      g.connect(musicGain);
+      g.gain.setValueAtTime(0.3, bassTime);
+      g.gain.setValueAtTime(0.3, bassTime + dur * 0.8);
+      g.gain.linearRampToValueAtTime(0.0, bassTime + dur * 0.95);
+      osc.start(bassTime);
+      osc.stop(bassTime + dur);
+      bassTime += dur;
+    }
+
+    // ── Schedule Arpeggios (one chord per 2 beats, arpeggiated as 16th notes) ──
+    let arpTime = startTime;
+    const sixteenth = beatLen / 4;
+    for (const chord of arps) {
+      for (let rep = 0; rep < 4; rep++) {
+        for (let n = 0; n < chord.length; n++) {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = noteFreq(chord[n]);
+          osc.connect(g);
+          g.connect(musicGain);
+          const t = arpTime + rep * (sixteenth * chord.length) + n * sixteenth;
+          const noteDur = sixteenth * 0.8;
+          g.gain.setValueAtTime(0.08, t);
+          g.gain.linearRampToValueAtTime(0.0, t + noteDur);
+          osc.start(t);
+          osc.stop(t + noteDur + 0.01);
+        }
+      }
+      arpTime += 2 * beatLen;
+    }
+
+    // ── Kick drum pattern (on beats 1 and 3) ──
+    for (let bar = 0; bar < loopBars; bar++) {
+      for (let beat = 0; beat < 4; beat += 2) {
+        const t = startTime + bar * barLen + beat * beatLen;
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, t);
+        osc.frequency.exponentialRampToValueAtTime(30, t + 0.1);
+        osc.connect(g);
+        g.connect(musicGain);
+        g.gain.setValueAtTime(0.35, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        osc.start(t);
+        osc.stop(t + 0.15);
+      }
+    }
+
+    // ── Hi-hat pattern (offbeats using noise-like high freq) ──
+    for (let bar = 0; bar < loopBars; bar++) {
+      for (let beat = 0; beat < 4; beat++) {
+        const t = startTime + bar * barLen + beat * beatLen + beatLen * 0.5;
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = 8000 + Math.random() * 2000;
+        osc.connect(g);
+        g.connect(musicGain);
+        g.gain.setValueAtTime(0.03, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+        osc.start(t);
+        osc.stop(t + 0.06);
+      }
+    }
+
+    // Schedule next loop just before this one ends
+    setTimeout(() => {
+      if (musicPlaying) scheduleLoop();
+    }, (loopLen - 0.3) * 1000);
+  }
+
+  scheduleLoop();
+}
+// ─── END BACKGROUND MUSIC ───
+
 window.addEventListener('keydown', () => {
   if (!audioInit) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -24,6 +201,7 @@ window.addEventListener('keydown', () => {
     engineOsc.start();
     audioInit = true;
     playAudio('start');
+    startBackgroundMusic();
   }
 }, { once: true });
 
@@ -654,6 +832,7 @@ if (playBtn) {
         
         // Start engine audio here too to ensure user interaction unlocks audio context
         if (audioCtx.state === 'suspended') audioCtx.resume();
+        startBackgroundMusic();
     });
 }
 

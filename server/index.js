@@ -58,6 +58,15 @@ function spawnGem(x, z) {
 // init 10 gems
 for(let i=0; i<10; i++) spawnGem();
 
+function respawnAfterDelay(count = 1) {
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const newGem = spawnGem();
+      io.emit('gem_spawned', newGem);
+    }, 5000);
+  }
+}
+
 let lightnings = [];
 function spawnLightning() {
   const L = {
@@ -124,11 +133,6 @@ io.on('connection', (socket) => {
       gems.splice(gemIndex, 1);
       players[socket.id].gemCount++;
       io.emit('gem_collected', { gemId, playerId: socket.id, gemCount: players[socket.id].gemCount });
-      // Spawn a new gem after a delay
-      setTimeout(() => {
-        const newGem = spawnGem();
-        io.emit('gem_spawned', newGem);
-      }, 5000);
     }
   });
 
@@ -136,11 +140,13 @@ io.on('connection', (socket) => {
     if (gameState !== 'PLAYING') return;
     if (players[socket.id] && players[socket.id].gemCount > 0) {
       const team = players[socket.id].team;
-      scores[team] += players[socket.id].gemCount;
+      const count = players[socket.id].gemCount;
+      scores[team] += count;
       players[socket.id].gemCount = 0;
       io.emit('score_update', scores);
       io.emit('gem_count_update', { playerId: socket.id, gemCount: 0 });
       checkWin();
+      respawnAfterDelay(count);
     }
   });
 
@@ -164,10 +170,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log(`Player disconnected: ${socket.id}`);
+    const gc = players[socket.id] ? players[socket.id].gemCount : 0;
     delete players[socket.id];
     if (getNonBotCount() === 0) {
         gameState = 'PAUSED';
     }
+    if (gc > 0) respawnAfterDelay(gc);
     io.emit('player_leave', socket.id);
   });
 
@@ -203,6 +211,7 @@ io.on('connection', (socket) => {
       p.team = p.team === 'red' ? 'blue' : 'red';
       
       // Reset variables and swap coordinates
+      const gc = p.gemCount;
       p.gemCount = 0;
       p.x = p.team === 'red' ? -80 : 80;
       p.y = 0;
@@ -210,6 +219,8 @@ io.on('connection', (socket) => {
       p.rotation = p.team === 'red' ? -Math.PI/2 : Math.PI/2;
       p.speed = 0;
       if (p.vy !== undefined) p.vy = 0;
+      
+      if (gc > 0) respawnAfterDelay(gc);
       
       // Tell clients to rerender
       io.emit('team_switched', { id: targetId, player: p });
@@ -625,10 +636,6 @@ function updateBots() {
           gems.splice(i, 1);
           bot.gemCount++;
           io.emit('gem_collected', { gemId: g.id, playerId: id, gemCount: bot.gemCount });
-          setTimeout(() => {
-            const newGem = spawnGem();
-            io.emit('gem_spawned', newGem);
-          }, 5000);
           break;
         }
       }
@@ -638,11 +645,13 @@ function updateBots() {
     const isRedBase = bot.team === 'red' && bot.x < -60 && Math.abs(bot.z) < 20;
     const isBlueBase = bot.team === 'blue' && bot.x > 60 && Math.abs(bot.z) < 20;
     if ((isRedBase || isBlueBase) && bot.gemCount > 0) {
-      scores[bot.team] += bot.gemCount;
+      const gc = bot.gemCount;
+      scores[bot.team] += gc;
       bot.gemCount = 0;
       io.emit('score_update', scores);
       io.emit('gem_count_update', { playerId: id, gemCount: 0 });
       checkWin();
+      respawnAfterDelay(gc);
     }
 
     // ATTACK COLLISION
